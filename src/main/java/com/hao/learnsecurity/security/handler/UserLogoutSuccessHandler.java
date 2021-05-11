@@ -1,9 +1,10 @@
-package com.hao.learnsecurity.security;
+package com.hao.learnsecurity.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hao.learnsecurity.common.CommonConstants;
 import com.hao.learnsecurity.common.Result;
 import com.hao.learnsecurity.common.utils.RedisUtil;
+import com.hao.learnsecurity.security.enity.SelfUserEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,8 +35,10 @@ public class UserLogoutSuccessHandler implements LogoutSuccessHandler {
         httpServletResponse.setContentType("application/json;charset=utf-8");
         PrintWriter out = httpServletResponse.getWriter();
 
-        User userDetails = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        redisUtil.del(CommonConstants.TOKEN_KEY + userDetails.getUsername());
+        //获取token
+        SelfUserEntity selfUserEntity =  (SelfUserEntity) authentication.getPrincipal();
+        redisUtil.del(CommonConstants.TOKEN_KEY + selfUserEntity.getUsername());
+
         out.write(new ObjectMapper().writeValueAsString(Result.ok(true, "登出成功")));
         out.flush();
         out.close();

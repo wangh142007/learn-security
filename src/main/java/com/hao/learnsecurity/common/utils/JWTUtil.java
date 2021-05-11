@@ -4,8 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.hao.learnsecurity.entity.BO.UserBO;
+import com.hao.learnsecurity.common.config.JWTConfig;
+import com.hao.learnsecurity.security.enity.SelfUserEntity;
 
 import java.util.Date;
 
@@ -18,46 +18,42 @@ import java.util.Date;
 public class JWTUtil {
 
 
-    public final static String secret = "JWTSecret";
-    public final static String issuer = "hao-";
-    private static final long TOKEN_EXP_TIME = 24 * 3600 * 1000;
-    private static final String username = "username";
 
-    public static String createAccessToken(UserBO userBO) {
+    public static String createAccessToken(SelfUserEntity selfUserEntity) {
         Date now = new Date();
-        Algorithm algorithm = Algorithm.HMAC256(secret);
+        Algorithm algorithm = Algorithm.HMAC256(JWTConfig.secret);
         // 登陆成功生成JWT
         String token = JWT.create()
-                // 放入用户名和用户ID
-                .withClaim(username,userBO.getUsername())
                 // 签发时间
                 .withIssuedAt(now)
-                // 签发者
-                .withIssuer(issuer)
-                // 自定义属性 放入用户拥有权限
-                .withClaim("authorities", JSON.toJSONString(userBO.getAuthorities()))
                 // 失效时间
-                .withExpiresAt(new Date(now.getTime() + TOKEN_EXP_TIME))
+                .withExpiresAt(new Date(now.getTime() + JWTConfig.expiration))
+                // 签发者
+                .withSubject("hao")
+                // 自定义属性 放入用户拥有权限
+                .withClaim("userInfo", JSON.toJSONString(selfUserEntity))
                 // 签名算法和密钥
                 .sign(algorithm);
         return token;
     }
 
 
-    public static boolean verify(String token, String username) {
 
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
-            JWTVerifier verifier = JWT.require(algorithm)
-                    .withIssuer(issuer)
-                    .withClaim(JWTUtil.username, username)
-                    .build();
-            verifier.verify(token);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
+
+//    public static boolean verify(String token, String username) {
+//
+//        try {
+//            Algorithm algorithm = Algorithm.HMAC256(JWTConfig.secret);
+//            JWTVerifier verifier = JWT.require(algorithm)
+//                    .withIssuer("hao")
+//                    .withClaim(JWTUtil.username, username)
+//                    .build();
+//            verifier.verify(token);
+//            return true;
+//        } catch (Exception e) {
+//            return false;
+//        }
+//    }
 
 
 }

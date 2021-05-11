@@ -1,15 +1,13 @@
-package com.hao.learnsecurity.security;
+package com.hao.learnsecurity.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hao.learnsecurity.common.CommonConstants;
 import com.hao.learnsecurity.common.Result;
 import com.hao.learnsecurity.common.utils.JWTUtil;
 import com.hao.learnsecurity.common.utils.RedisUtil;
-import com.hao.learnsecurity.entity.BO.UserBO;
+import com.hao.learnsecurity.security.enity.SelfUserEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -36,18 +34,18 @@ public class UserLoginSuccessHandler implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException, ServletException {
         httpServletResponse.setContentType("application/json;charset=utf-8");
-        User userDetails = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        SelfUserEntity selfUserEntity =  (SelfUserEntity) authentication.getPrincipal();
 
-        UserBO userBO = UserBO.builder().username(userDetails.getUsername()).authorities(userDetails.getAuthorities().toString()).build();
-        String accessToken = JWTUtil.createAccessToken(userBO);
 
-        redisUtil.set(CommonConstants.TOKEN_KEY + userDetails.getUsername(), accessToken);
+        String accessToken = JWTUtil.createAccessToken(selfUserEntity);
+
+        redisUtil.set(CommonConstants.TOKEN_KEY + selfUserEntity.getUsername(), accessToken);
 
         PrintWriter out = httpServletResponse.getWriter();
         // 封装返回参数
         Map<String, Object> resultData = new HashMap<>();
-        resultData.put("username", userBO.getUsername());
-        resultData.put("authorities", userBO.getAuthorities());
+        resultData.put("username", selfUserEntity.getUsername());
+        resultData.put("authorities", selfUserEntity.getAuthorities());
         resultData.put("token", accessToken);
         out.write(new ObjectMapper().writeValueAsString(Result.ok(resultData, "登录成功")));
         out.flush();

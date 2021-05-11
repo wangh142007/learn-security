@@ -1,4 +1,4 @@
-package com.hao.learnsecurity.security;
+package com.hao.learnsecurity.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hao.learnsecurity.common.Result;

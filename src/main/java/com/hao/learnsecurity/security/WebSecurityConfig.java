@@ -1,5 +1,9 @@
 package com.hao.learnsecurity.security;
 
+import com.hao.learnsecurity.security.handler.UserLoginAuthHandler;
+import com.hao.learnsecurity.security.handler.UserLoginFailureHandler;
+import com.hao.learnsecurity.security.handler.UserLoginSuccessHandler;
+import com.hao.learnsecurity.security.handler.UserLogoutSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,7 +11,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -23,6 +26,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private AuthenticationTokenFilter authenticationTokenFilter;
 
     @Autowired
+    private UserAuthenticationProvider userAuthenticationProvider;
+
+    @Autowired
     private UserLoginAuthHandler userLoginAuthHandler;
 
     @Autowired
@@ -34,24 +40,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private UserLoginFailureHandler userLoginFailureHandler;
 
+
     @Bean
     PasswordEncoder passwordEncoder() {
         // 设置默认的加密方式（强hash方式加密）
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * 配置登录验证逻辑
+     */
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        //配置认证方式等
-        auth.userDetailsService(userDetailsService());
+    protected void configure(AuthenticationManagerBuilder auth){
+        //这里可启用我们自己的登陆验证逻辑
+        auth.authenticationProvider(userAuthenticationProvider);
     }
 
-    @Bean
-    @Override
-    protected UserDetailsService userDetailsService() {
-        //创建一个service  继承security UserDetailsService
-        return new UserLoginService();
-    }
 
     /**
      * 可以在此处指定需要防御常见漏洞的任何端点，包括公共漏洞
