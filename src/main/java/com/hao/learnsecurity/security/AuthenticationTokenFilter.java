@@ -9,6 +9,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.hao.learnsecurity.common.CommonConstants;
 import com.hao.learnsecurity.common.config.JWTConfig;
 import com.hao.learnsecurity.common.utils.JWTUtil;
 import com.hao.learnsecurity.common.utils.RedisUtil;
@@ -40,8 +41,8 @@ import java.util.Map;
 public class AuthenticationTokenFilter extends OncePerRequestFilter {
 
 
-//    @Autowired
-//    private RedisUtil redisUtil;
+    @Autowired
+    private RedisUtil redisUtil;
 
     @Autowired
     private UserLoginServiceImpl userDetailsService;
@@ -52,6 +53,7 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
 
         // 获取请求头中JWT的Token
         String tokenHeader = httpServletRequest.getHeader(JWTConfig.tokenHeader);
+
         if (StrUtil.isNotBlank(tokenHeader) ) {
             try {
                 // 解析JWT
@@ -63,14 +65,15 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
                 String username = selfUserEntity.getUsername();
                 Long userId=selfUserEntity.getUserId();
 
-                if (StrUtil.isNotBlank(String.valueOf(userId))) {
+                String key = CommonConstants.TOKEN_KEY + selfUserEntity.getUserId();
+                // 判断key是否存在 和 token是否相等  如果需要单点登录则需要这个判断
+                if (redisUtil.hasKey(key) && redisUtil.get(key).equals(tokenHeader)){
 
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
-
                 }
 
             } catch (Exception e) {

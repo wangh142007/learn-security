@@ -39,7 +39,7 @@ public class UserLoginSuccessHandler implements AuthenticationSuccessHandler {
 
         String accessToken = JWTUtil.createAccessToken(selfUserEntity);
 
-        redisUtil.set(CommonConstants.TOKEN_KEY + selfUserEntity.getUsername(), accessToken);
+        redisUtil.set(CommonConstants.TOKEN_KEY + selfUserEntity.getUserId(), accessToken);
 
         PrintWriter out = httpServletResponse.getWriter();
         // 封装返回参数

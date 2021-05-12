@@ -37,7 +37,7 @@ public class UserLogoutSuccessHandler implements LogoutSuccessHandler {
 
         //获取token
         SelfUserEntity selfUserEntity =  (SelfUserEntity) authentication.getPrincipal();
-        redisUtil.del(CommonConstants.TOKEN_KEY + selfUserEntity.getUsername());
+        redisUtil.del(CommonConstants.TOKEN_KEY + selfUserEntity.getUserId());
 
         out.write(new ObjectMapper().writeValueAsString(Result.ok(true, "登出成功")));
         out.flush();
